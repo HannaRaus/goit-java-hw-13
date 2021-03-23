@@ -1,67 +1,69 @@
-package ua.goit.http;
+package ua.goit;
 
-import ua.goit.UserInfo.Address;
-import ua.goit.UserInfo.Company;
-import ua.goit.UserInfo.Geo;
-import ua.goit.UserInfo.User;
+import ua.goit.UserInfo.*;
 
-import java.net.http.HttpResponse;
 import java.util.List;
 
-public class TaskOne {
-    private static final String HOST = "https://jsonplaceholder.typicode.com/";
-    private static final String END_POINT = "users";
-    private static final String USER_NAME = "?username=";
-
+public class Main {
+    private static final User DEFAULT_USER = HttpUtil.getUserById(5);
     public static void main(String[] args){
-        User hanna = createNewUser();
-        int id = 5;
-        String name = "Samantha";
-
+        User customUser = createNewUser();
 
         System.out.println("[ex.1] - add user");
         //Метод создания работает правильно, если в ответ на JSON с объектом вернулся такой же JSON,
         //но с полем id со значением на 1 больше, чем самый большой id на сайте.
-        User addedUser = HttpUtil.createUser(String.format("%s%s", HOST, END_POINT), hanna);
+        User addedUser = HttpUtil.createUser(customUser);
         System.out.println("Added user id - " + addedUser.getId() + "\n" + addedUser);
         System.out.println("---------------------------------------------------------------");
 
         System.out.println("[ex.2] - update userinfo");
         //Метод создания работает правильно, если в ответ на JSON с объектом вернулся такой же JSON,
         //но с полем id со значением на 1 больше, чем самый большой id на сайте.
-        System.out.println("User before update - \n" + HttpUtil.getUserById(String.format("%s%s", HOST, END_POINT),id));
-        User updatedUser = HttpUtil.setNewUserName(String.format("%s%s", HOST, END_POINT), id,"Hanna");
+        System.out.println("User before update - \n" + HttpUtil.getUserById(DEFAULT_USER.getId()));
+        User updatedUser = HttpUtil.setNewUserName(DEFAULT_USER.getId(),"Hanna");
         System.out.println("Updated user -> changed username = " + updatedUser.getUsername() + "\n" + updatedUser);
         System.out.println("---------------------------------------------------------------");
 
 
         System.out.println("[ex.3] - delete user");
         //удаление объекта. Здесь будем считать корректным результат - статус из группы 2хх в ответ на запрос.
-        HttpResponse<String> deleteUser = HttpUtil.deleteUser(String.format("%s%s", HOST, END_POINT), id);
-        System.out.println("StatusCode after delete - " + deleteUser.statusCode());
+        int statusCode = HttpUtil.deleteUser(DEFAULT_USER.getId());
+        System.out.println("StatusCode after delete - " + statusCode);
         System.out.println("---------------------------------------------------------------");
 
         System.out.println("[ex.4] - get all user");
         //получение информации обо всех пользователях
-        List<User> allUsers = HttpUtil.getUsers(String.format("%s%s", HOST, END_POINT));
+        List<User> allUsers = HttpUtil.getUsers();
         System.out.println("All users :");
         allUsers.forEach(System.out::println);
         System.out.println("---------------------------------------------------------------");
 
         System.out.println("[ex.5] - get user by ID");
         //получение информации о пользователе с определенным id
-        User userById = HttpUtil.getUserById(String.format("%s%s", HOST, END_POINT), id);
-        System.out.println("Received user -> id = " + id + "\n" + userById);
+        User userById = HttpUtil.getUserById(DEFAULT_USER.getId());
+        System.out.println("Received user -> id = " + DEFAULT_USER.getId() + "\n" + userById);
         System.out.println("---------------------------------------------------------------");
 
         System.out.println("[ex.6] - get user by name");
         //получение информации о пользователе с опредленным username
-        User userByName = HttpUtil.getUserByName(String.format("%s%s%s", HOST, END_POINT, USER_NAME),name);
-        System.out.println("Received user -> username = " + name + "\n" + userByName);
+        User userByName = HttpUtil.getUserByName(DEFAULT_USER.getUsername());
+        System.out.println("Received user -> username = " + DEFAULT_USER.getUsername() + "\n" + userByName);
         System.out.println("---------------------------------------------------------------");
 
+        System.out.println("[ex.7] - get user's last post all comments");
+        //выводить все комментарии к последнему посту определенного пользователя и записывать их в файл.
+        List<Comment> allCommentToLastPostOfUser = HttpUtil.getAllCommentToLastPostOfUser(userById);
+        System.out.println("User's id=" + DEFAULT_USER.getId() + " last post's comments are");
+        allCommentToLastPostOfUser.forEach(System.out::println);
+        System.out.println("---------------------------------------------------------------");
 
-
+        System.out.println("[ex.8] - get all uncompleted user's todos");
+        //выводить все открытые задачи для пользователя Х.
+        //Открытыми считаются все задачи, у которых completed = false.
+        List<ToDo> allUncompletedToDos = HttpUtil.getAllUncompletedToDos(userById);
+        System.out.println("User's id=" + DEFAULT_USER.getId() + " uncompleted ToDos are:");
+        allUncompletedToDos.forEach(System.out::println);
+        System.out.println("---------------------------------------------------------------");
 
     }
     private static User createNewUser() {
